@@ -37,6 +37,9 @@ COPY env/DOCKER.KERNEL /opt/softwareag/EntireNetWorkServer/config/DOCKER
 RUN mkdir /data/DOCKER && chown sag /data/DOCKER
 
 # Copy license into docker images
+
+# new line
+
 COPY wcp77.xml /opt/softwareag/common/LKey/wcp77.xml
 
 USER sag
