@@ -1,0 +1,48 @@
+# Copyright (c) 2017 Software AG, Darmstadt, Germany and/or Software AG USA Inc.,
+# Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their
+# licensors. Use, reproduction, transfer, publication or disclosure is prohibited
+# except as specifically provided for in your License Agreement with Software AG.
+#
+# This Dockerfile creates an image that can run a fully-functional MashZone NextGen
+# server and is built from an existing MashZone NextGen installation. The build should
+# be run from the root of your Software AG installation, e.g.
+# /opt/softwareag/
+
+# CentOS 7 base image is pulled from the Docker Hub.
+#FROM centos:7
+FROM daerepository03.eur.ad.sag:4443/ibit/centos:7
+
+MAINTAINER SoftwareAG
+
+LABEL "com.example.vendor"="Software AG"
+LABEL version="1.0"
+LABEL description="Software AG Adabas docker file"
+
+ARG sag_user_id
+ARG group_id
+
+#RUN yum -y update
+RUN groupadd -g ${group_id} adabas
+#RUN useradd -ms /bin/bash sag
+RUN useradd -ms /bin/bash -u ${sag_user_id} -g adabas sag
+ADD softwareag.tar.gz /opt/softwareag
+#COPY softwareag.tar.gz /tmp
+#RUN mkdir -p /data && mkdir -p /opt/softwareag && cd /opt/softwareag && tar -zxf /tmp/softwareag.tar.gz && rm /tmp/softwareag.tar.gz
+RUN mkdir -p /data
+COPY env/sagenv.new /opt/softwareag/bin/sagenv.new
+COPY env/aclenv /opt/softwareag/AdabasClient/INSTALL/aclenv
+COPY env/adienv /opt/softwareag/SoftwareAgDirectoryServer/INSTALL/adienv
+COPY env/wcpenv /opt/softwareag/EntireNetWorkServer/INSTALL/wcpenv 
+COPY env/DOCKER.KERNEL /opt/softwareag/EntireNetWorkServer/config/DOCKER
+RUN mkdir /data/DOCKER && chown sag /data/DOCKER
+
+# Copy license into docker images
+COPY wcp77.xml /opt/softwareag/common/LKey/wcp77.xml
+
+USER sag
+
+COPY startServer /usr/local/bin
+
+EXPOSE 4952 50001
+CMD ["startServer"]
+
